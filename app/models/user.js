@@ -1,8 +1,8 @@
-// var db = require('../config');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var db = require('../config');
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 // create a schema
 var userSchema = new Schema({
@@ -14,25 +14,26 @@ var userSchema = new Schema({
 
 // we need to create a model using it
 var User = mongoose.model('User', userSchema);
-
+//when create a new user, hash their password, and save into db
 userSchema.methods.initialize = function () {
     this.on('creating', this.hashPassword);
     this.save(function(err) {
       if (err) {throw err;} 
-      else {console.log('User saved successfully!';}
+      else {console.log('User saved successfully SONNNNNN!')}
+        // next();
     });
 };
-//TODO can it use 'get?' here?
-userSchema.methods.comparePassword = function(attemptedPassword, callback) {
-    bcrypt.compare(attemptedPassword, this.get('password'), function(err, isMatch) {
-      callback(isMatch);
+//compare attemptedPassword with stored hashed/db
+var comparePassword = function(attemptedPassword, callback) {
+    bcrypt.compare(attemptedPassword, this.password, function(err, isMatch) {
+      callback(err, isMatch);
     });
 };
 
-userSchema.methods.hashPassword = function(){
+var hashPassword = function(){
   var cipher = Promise.promisify(bcrypt.hash);
   return cipher(this.get('password'), null, null).bind(this)
-    .then(function(hash) {
+    .exec(function(hash) {
       this.set('password', hash);
     });
 };

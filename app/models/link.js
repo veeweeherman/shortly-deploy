@@ -1,8 +1,7 @@
-// var db = require('../config');
+var db = require('../config');
+var crypto = require('crypto');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var crypto = require('crypto');
-
 // create a schema
 var linkSchema = new Schema({
   url: { type: String, required: true },
@@ -15,14 +14,14 @@ var linkSchema = new Schema({
 });
 
 // assign default values
-var Link = mongoose.model('Link', userSchema);
+var Link = mongoose.model('Link', linkSchema);
 
 // give methods
-linkSchema.methods.initialize = function () {  
+var createSha = function () {  
   this.on('creating', function(model, attrs, options){
     var shasum = crypto.createHash('sha1');
-    shasum.update(model.get('url'));
-    model.set('code', shasum.digest('hex').slice(0, 5));
+    shasum.update(this.url);
+    this.code = shasum.digest('hex').slice(0, 5);
   });
 };
 
