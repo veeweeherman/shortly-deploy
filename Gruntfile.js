@@ -32,7 +32,7 @@ configure dependecies
         options: {
           reporter: 'spec'
         },
-        src: ['test/**/*.js']
+        src: ['test/ServerSpec.js']
       }
     },
 
@@ -45,7 +45,7 @@ configure dependecies
     uglify: {
       my_target: {
         files: {
-          'dest/??' : ['public/client/*.js']
+          'public/dist/app.min.js' : ['public/client/*.js']
         }
       }
     },
