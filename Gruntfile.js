@@ -1,8 +1,30 @@
 module.exports = function(grunt) {
+/* -------------------------------------- 
+load dependecies INSTALLED DEPENDENCIES --save
+/-------------------------------------- */
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-nodemon');
 
+
+/* -------------------------------------- 
+configure dependecies
+/-------------------------------------- */
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      options: {
+        separator: ';',
+      },
+      dist: {
+        src: ['/public/client/*.js'],
+        dest: 'public/dist/built.js', 
+      }
     },
 
     mochaTest: {
@@ -10,7 +32,7 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/ServerSpec.js']
+        src: ['test/**/*.js']
       }
     },
 
@@ -21,12 +43,18 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      my_target: {
+        files: {
+          'dest/??' : ['public/client/*.js']
+        }
+      }
     },
 
     jshint: {
-      files: [
+      beforeconcat: ['public/client/*.js'],
+      // files: [
         // Add filespec list here
-      ],
+      // ],
       options: {
         force: 'true',
         jshintrc: '.jshintrc',
@@ -63,14 +91,12 @@ module.exports = function(grunt) {
     },
   });
 
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-cssmin');
-  grunt.loadNpmTasks('grunt-mocha-test');
-  grunt.loadNpmTasks('grunt-shell');
-  grunt.loadNpmTasks('grunt-nodemon');
+
+
+
+/* -------------------------------------- 
+create tasks using dependecies
+/-------------------------------------- */
 
   grunt.registerTask('server-dev', function (target) {
     // Running nodejs in a different process and displaying output on the main console
@@ -94,6 +120,9 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('build', [
+    'concat', 
+    'uglify',
+    'jshint'
   ]);
 
   grunt.registerTask('upload', function(n) {
