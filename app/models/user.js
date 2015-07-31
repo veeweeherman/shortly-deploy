@@ -1,12 +1,12 @@
-var db = require('../config');
+// var db = require('../config');
+var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+// why no bluebird????????????
 
-// create a schema
-var userSchema = new Schema({
-  username: { type: String, required: true, unique: true },
+// create a schema: why soln use mongoose.Scheme and not new Scheme???????????
+var userSchema = mongoose.Schema({
+  username: { type: String, required: true, /*undex: {unique:true in here instead}*/unique: true },
   password: { type: String, required: true },
   created_at: Date,
   updated_at: Date
@@ -14,55 +14,27 @@ var userSchema = new Schema({
 
 // we need to create a model using it
 var User = mongoose.model('User', userSchema);
-//when create a new user, hash their password, and save into db
-userSchema.methods.initialize = function () {
-    this.on('creating', this.hashPassword);
-    this.save(function(err) {
-      if (err) {throw err;} 
-      else {console.log('User saved successfully SONNNNNN!')}
-        // next();
-    });
-};
-//compare attemptedPassword with stored hashed/db
-var comparePassword = function(attemptedPassword, callback) {
-    bcrypt.compare(attemptedPassword, this.password, function(err, isMatch) {
-      callback(err, isMatch);
-    });
-};
 
-var hashPassword = function(){
-  var cipher = Promise.promisify(bcrypt.hash);
-  return cipher(this.get('password'), null, null).bind(this)
-    .exec(function(hash) {
-      this.set('password', hash);
+// create method that takes compares (w bcrypt) the candidatePassword and the savedPassword
+// the bcrypt compare method uses a callback to handle success and error notifications
+User.comparePassword = function(candidatePassword, savedPassword, callback) {
+    bcrypt.compare(candidatePassword, savedPassword, function(err, isMatch) {
+      if (err) {return callback(err)};
+      callback(null, isMatch); //null is first param bc there was no error in the else case
     });
 };
+// use mongoose' pre/save to declare before a save event:
+// create the hash 
+// return the hashes password
+// use promise to store pass word and move onto next action
+userSchema.pre('save', function () {
+  var cipher = Promise.promisify(bcrypt.hash);
+  return cipher(this.password, null, null).bind(this)
+  .then(function(hash) {
+    this.password = hash;
+    next();
+  });
+});
 
 // make this available to our users in our Node applications
 module.exports = User;
-
-
-
-
-/** BEFORE MONGO ****************************/
-// var User = db.Model.extend({
-//   tableName: 'users',
-//   hasTimestamps: true,
-//   initialize: function(){
-//     this.on('creating', this.hashPassword);
-//   },
-//   comparePassword: function(attemptedPassword, callback) {
-//     bcrypt.compare(attemptedPassword, this.get('password'), function(err, isMatch) {
-//       callback(isMatch);
-//     });
-//   },
-//   hashPassword: function(){
-//     var cipher = Promise.promisify(bcrypt.hash);
-//     return cipher(this.get('password'), null, null).bind(this)
-//       .then(function(hash) {
-//         this.set('password', hash);
-//       });
-//   }
-// });
-
-// module.exports = User;

@@ -1,14 +1,15 @@
 var db = require('../config');
 var crypto = require('crypto');
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+// var Schema = mongoose.Schema;
+
 // create a schema
-var linkSchema = new Schema({
+var linkSchema = mongoose.Schema({
   url: { type: String, required: true },
-  base_url: { type: String },
-  code:  { type: String },
-  title: { type: String },
-  visits:  { type: Number },
+  base_url: String,
+  code:  String,
+  title: String,
+  visits:  Number,
   created_at: Date,
   updated_at: Date
 });
@@ -16,34 +17,24 @@ var linkSchema = new Schema({
 // assign default values
 var Link = mongoose.model('Link', linkSchema);
 
-// give methods
-var createSha = function () {  
-  this.on('creating', function(model, attrs, options){
-    var shasum = crypto.createHash('sha1');
-    shasum.update(this.url);
-    this.code = shasum.digest('hex').slice(0, 5);
-  });
+// create hash for the incoming urls:
+  // use crypto's createHash method w formula SHa 1
+  // return the hash and DIGEST??????????? and slice
+var createSha = function (url) {  
+  var shasum = crypto.createHash('sha1');
+  shasum.update(url);
+  return shasum.digest('hex').slice(0, 5);
+  
 };
+// before every save event of this link,
+// create a sha has for the url and set this link's code to equal that nash
+// then move onto next action
+linkSchema.pre('save', function(next){
+  var code = createSha(this.url)
+  this.code = code
+  next();
+})
 
 module.exports = Link;
 
 
-
-
-/** BEFORE MONGO ****************************/
-// var Link = db.Model.extend({
-//   tableName: 'urls',
-//   hasTimestamps: true,
-//   defaults: {
-//     visits: 0
-//   },
-//   initialize: function(){
-//     this.on('creating', function(model, attrs, options){
-//       var shasum = crypto.createHash('sha1');
-//       shasum.update(model.get('url'));
-//       model.set('code', shasum.digest('hex').slice(0, 5));
-//     });
-//   }
-// });
-
-// module.exports = Link;
